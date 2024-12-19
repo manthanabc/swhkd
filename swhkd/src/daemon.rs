@@ -324,6 +324,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     for (path, mut device) in keyboard_devices.into_iter() {
         let _ = device.grab();
+        log::debug!("{:?}", device.name());
         let path = match path.to_str() {
             Some(p) => p,
             None => {
@@ -364,6 +365,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                         execution_is_paused = false;
                         for mut device in evdev::enumerate().map(|(_, device)| device).filter(check_device_is_keyboard) {
                             let _ = device.grab();
+                            log::debug!("{:?}", device.name());
                         }
                     }
 
@@ -417,6 +419,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                             Ok(device) => device
                         };
                         let name = device.name().unwrap_or("[unknown]").to_string();
+                        log::info!("Name wis {}", name);
                         if arg_devices.contains(&name) || check_device_is_keyboard(&device) {
                             log::info!("Device '{}' at '{}' added.", name, node);
                             let _ = device.grab();
@@ -541,6 +544,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
 }
 
 pub fn check_device_is_keyboard(device: &Device) -> bool {
+    // print!("checking device: ");
+    // print!("{:?}\n", device.name());
+    log::debug!("Keyboard: {}\n", device.name().unwrap(),);
     if device.supported_keys().map_or(false, |keys| keys.contains(Key::KEY_ENTER)) {
         if device.name() == Some("swhkd virtual output") {
             return false;
@@ -548,7 +554,7 @@ pub fn check_device_is_keyboard(device: &Device) -> bool {
         log::debug!("Keyboard: {}", device.name().unwrap(),);
         true
     } else {
-        log::trace!("Other: {}", device.name().unwrap(),);
+        log::debug!("Other: {}", device.name().unwrap(),);
         false
     }
 }
